@@ -1,162 +1,293 @@
-# Shrouded — macOS
+# SHROUDED — macOS
 
-Ett litet multiplayer-spel. En person är **värd** (kör servern), och alla
-andra **ansluter** som spelare. Den här mappen är Mac-versionen.
+A multiplayer social-deduction game in the style of *Among Us*, written from
+scratch in C using SDL2. Up to **6 players** join the same game over a local
+network. One player is secretly the **Killer**; everyone else is an innocent
+**Crewmate**. Innocents race to finish their tasks or vote the Killer out — the
+Killer tries to eliminate enough Innocents to take over.
 
-> **Viktigt först:** den här versionen är byggd för **Apple Silicon-Mac**
-> (M1, M2, M3, M4). På en äldre **Intel-Mac** startar programmen inte alls —
-> då måste spelet byggas om. Är du osäker: klicka på  > Om den här dattorn
-> och titta på raden "Chip". Står det "Apple" är du rätt.
+This folder is the **macOS** version.
+
+> **Read this first:** This build is for **Apple Silicon Macs** (M1, M2, M3, M4).
+> It will **not** start on an older **Intel Mac**. To check: Apple menu () →
+> **About This Mac** → look at the "Chip" line. If it starts with "Apple",
+> you're good.
 
 ---
 
-## Vad finns i mappen?
+## What's in this folder
 
 ```
 Shrouded-macOS/
-├── client                 ← det här kör alla spelare
-├── server                 ← det här kör EN person (värden)
-├── Start Client.command   ← dubbelklicka för att starta client
-├── Start Server.command   ← dubbelklicka för att starta server
-├── assets/                ← bilder, ljud och typsnitt (MÅSTE ligga kvar här)
-└── README.md              ← den här filen
+├── client                 ← the game program for players
+├── server                 ← the game program for the host
+├── Start Client.command   ← double-click THIS to play  (recommended)
+├── Start Server.command   ← double-click THIS to host   (recommended)
+├── assets/                ← images, sounds, fonts (MUST stay in this folder)
+└── README.md              ← this file
 ```
 
-**Behåll alla filer tillsammans i samma mapp.** Spelet letar efter `assets/`
-precis bredvid programmet. Flyttar du ut `client` eller `server` på egen hand,
-eller tar bort `assets`, så fungerar det inte.
-
-Du kan flytta eller kopiera **hela mappen** vart du vill (skrivbordet, ett
-USB-minne, en annan dator), så länge innehållet hålls ihop.
+**Keep every file together in the same folder.** The game looks for `assets/`
+right next to the program. If you move `client` or `server` out on their own, or
+delete `assets`, the game will not work. You can move or copy the **whole
+folder** anywhere, as long as the contents stay together.
 
 ---
 
-## "Men det finns ju inga SDL- eller bibliotek-filer i mappen?"
+## Which file do I open? (`client` vs `Start Client.command`)
 
-Det stämmer, och det är **meningen**. Mac fungerar annorlunda än Windows här.
+There are two ways to launch each program — **use the `.command` files**,
+`Start Client.command` and `Start Server.command`. Both run the exact same game;
+the `.command` file is just a small wrapper that launches `client`/`server` for
+you. Why prefer it:
 
-På Windows ligger spelets bibliotek i samma mapp som programmet. På Mac har
-programmet istället den fasta adressen till biblioteken inbyggd i sig, och
-hämtar dem från en bestämd plats på datorn (`/opt/homebrew`) — inte från
-spelmappen.
+- It always starts the game from the correct folder, so `assets/` is found no
+  matter where you click from. (Opening the bare `client` directly can start it
+  from the wrong folder on some Macs, so it can't find its images → black
+  screen.)
+- It keeps the window open at the end so you can read any messages or errors.
+- The names make it obvious which file is for hosting and which is for playing.
 
-Du installerar de biblioteken **en gång** med kommandot i Steg 2 nedan. Efter
-det hittar spelet dem automatiskt, trots att de inte syns i mappen. Du behöver
-alltså **inte** kopiera in några bibliotekfiler för hand.
+The bare `client` / `server` files work too if they work for you, but the
+`.command` files are the safe choice — especially when sharing the game.
 
 ---
 
-## Installation (görs en gång)
+## Setup — do this once on EVERY Mac that runs the game
 
-Allt skrivs in i appen **Terminal**. Du hittar den via Spotlight: tryck
-**Cmd + Mellanslag**, skriv `Terminal`, tryck Enter.
+Having the files on the computer is **not enough by itself**: the game's
+libraries must be installed on each machine (Steps 1–2). Step 3 unblocks the
+programs. You do all three **once** per Mac.
 
-### Steg 1 — Installera Homebrew
+Everything here is typed into the **Terminal** app. Open it with **Cmd + Space**,
+type `Terminal`, press Enter.
 
-Homebrew är en "pakethanterare" som hämtar och installerar program åt dig.
-Har du redan Homebrew kan du hoppa över det här steget. Annars, klistra in
-i Terminal och tryck Enter:
+### Step 1 — Install Homebrew
+
+Homebrew is a free "package manager" that installs software for you. If this Mac
+already has it, skip to Step 2. Otherwise paste this and press Enter:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Följ anvisningarna på skärmen (du kan behöva skriva ditt lösenord — det syns
-inte när du skriver, det är normalt). Installationen kan be dig köra ett par
-extra rader på slutet för att "lägga till Homebrew i PATH" — kopiera och kör
-dem i så fall.
+It may ask for your Mac password — **the password stays invisible as you type,
+that's normal.** At the end it may print a line or two to "add Homebrew to your
+PATH"; if so, copy and run those too.
 
-### Steg 2 — Installera spelets bibliotek (SDL)
+### Step 2 — Install the game's libraries (SDL)
 
-Klistra in i Terminal och tryck Enter:
+Paste this and press Enter:
 
 ```bash
 brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 ```
 
-Det här hämtar SDL **och alla underliggande bibliotek** automatiskt (bilder,
-ljud, typsnitt med mera). Det kan ta någon minut.
+This installs SDL **and every smaller library it depends on** (image, sound,
+font). This is the macOS equivalent of the library files — that's why none are
+bundled in this folder. Confirm it worked with:
 
-### Steg 3 — Tillåt programmen att köra
+```bash
+brew list | grep sdl
+```
 
-Eftersom programmen inte är signerade av en känd utvecklare blockerar macOS
-(Gatekeeper) dem första gången. Det betyder **inte** att något är fel.
+You should see all five: `sdl2`, `sdl2_image`, `sdl2_mixer`, `sdl2_net`,
+`sdl2_ttf`.
 
-Enklast: öppna mappen i Terminal och kör de här två raderna. Byt först till
-mappen genom att skriva `cd ` (med mellanslag efter) och sedan **dra
-spelmappen från Finder in i Terminal-fönstret** och trycka Enter. Kör sedan:
+### Step 3 — Unblock the programs (Gatekeeper)
+
+Because the programs aren't signed by a registered developer, macOS blocks them
+the first time. This does **not** mean anything is wrong.
+
+**Terminal way:** move Terminal into the folder — type `cd ` (with a space),
+then **drag the game folder from Finder into the Terminal window** and press
+Enter. Then run:
 
 ```bash
 xattr -dr com.apple.quarantine .
 chmod +x client server "Start Client.command" "Start Server.command"
 ```
 
-- Den första raden tar bort "nedladdad från internet"-spärren.
-- Den andra ger programmen och startfilerna rätt att köras (ifall det tappades
-  bort när mappen packades eller laddades ner).
+The first line removes the "downloaded from the internet" block; the second
+grants permission to run.
 
-Alternativ utan Terminal: **högerklicka** på `Start Server.command` →
-**Öppna** → bekräfta **Öppna** i dialogen. Gör samma sak för
-`Start Client.command`. Det räcker att göra det en gång per fil.
-
----
-
-## Så här spelar ni
-
-### Värden (en person)
-
-1. Dubbelklicka på **Start Server.command**.
-2. Ett Terminal-fönster öppnas och servern startar. Låt det vara öppet så
-   länge ni spelar.
-3. Ta reda på din **lokala IP-adress** så de andra kan ansluta. Kör i Terminal:
-   ```bash
-   ipconfig getifaddr en0
-   ```
-   (Får du inget svar, prova `en1` istället för `en0`.) Det blir något i stil
-   med `192.168.x.x`. Skicka den adressen till spelarna.
-4. För att spela över internet (inte bara samma nätverk) krävs att port **2000**
-   är öppen/vidarebefordrad i routern — annars funkar det bara på samma Wi-Fi.
-
-### Spelarna
-
-1. Dubbelklicka på **Start Client.command**.
-2. När programmet frågar, ange **värdens IP-adress** (den ni fick av värden).
-3. Spela!
-
-Alla — inklusive värden — använder **Start Client.command** för att själva
-vara med i spelet. **Start Server.command** är bara värdens "spelmotor" som
-ska köras i bakgrunden.
+**No-Terminal way:** in Finder, **right-click** `Start Server.command` →
+**Open** → **Open** again in the warning. Repeat for `Start Client.command`.
+Once per file is enough.
 
 ---
 
-## Felsökning
+## Requirements
+
+- An **Apple Silicon Mac** with SDL installed (Steps 1–2 above).
+- All players on the **same network** (same Wi-Fi or LAN).
+- One Mac acts as the host by running the server.
+
+---
+
+## How to start a game
+
+### Step 1 — Start the server (host only)
+
+One person double-clicks **`Start Server.command`**. A Terminal window opens and
+shows:
+
+```
+Server listening on port 2000...
+```
+
+**Leave this window open** for the whole session — closing it ends the game for
+everyone. (The first time, macOS may ask "Do you want to allow incoming network
+connections?" — click **Allow**.)
+
+The host also needs their **local IP address** so others can connect — see the
+next section.
+
+### Step 2 — Join as a player (everyone, including the host)
+
+1. Double-click **`Start Client.command`**.
+2. On the main menu, choose to start.
+3. When prompted for the server address, type the host's IP (e.g.
+   `192.168.1.42`) and connect. On the **same Mac** as the server, use
+   `127.0.0.1` instead.
+4. You'll land in the **lobby**. Wait for everyone to join.
+
+### Step 3 — Start the match
+
+The **host** (the first player who joined) starts the match by pressing
+**`SPACE`** in the lobby, once **at least 2 players** have joined. Everyone then
+sees their secret role and the round begins.
+
+---
+
+## Finding the host's IP address
+
+Only the **host** needs this. In a Terminal window, run:
+
+```bash
+ipconfig getifaddr en0
+```
+
+If that prints nothing, try `en1` (Wi-Fi is often `en0`, wired often `en1`, but
+it varies). The result looks like `192.168.1.42` — share that with your players.
+
+Tips:
+- A home/office IP almost always starts with **`192.168.`** or **`10.`**.
+- **Ignore** `127.0.0.1` — that only works on the host's own machine.
+- The IP can change when you reconnect or restart, so check it again each
+  session.
+- Testing alone on one Mac? Players can just use **`127.0.0.1`**.
+
+---
+
+## How to play
+
+### Your goal
+
+- **Innocents** win by either completing **all of their tasks** or by **voting
+  out the Killer** in a meeting.
+- The **Killer** wins by eliminating Innocents until the Killer is **equal to or
+  greater in number** than the remaining Innocents.
+
+### Roles
+
+At the start of each round you're shown your role:
+
+- **Innocent (Crewmate)** — walk around the map and complete your assigned
+  tasks. You can call meetings and report bodies, but you cannot kill.
+- **Killer (Impostor)** — blend in, and eliminate Innocents when no one is
+  looking. After each kill there is a **30-second cooldown** before you can kill
+  again.
+
+### Controls
+
+| Key / Action | What it does |
+|---|---|
+| `W` `A` `S` `D` | Move your character |
+| `E` | Interact — start a task on a task spot; open the emergency-meeting screen at the meeting table |
+| `K` *(Killer only)* | Kill the nearest valid target in front of you (or click the kill button) |
+| `R` | Report a dead body when standing near one |
+| `M` | Open / close the task map |
+| `TAB` | Show / hide the task list panel |
+| `I` | Show / hide the controls overlay |
+| `Q` | Cancel / leave a task you've opened |
+| `ESC` | Open the pause menu |
+| Mouse | Click buttons (kill, report, meeting, vote) |
+
+### Tasks (Innocents)
+
+Walk onto a task spot and press `E` to open the mini-game for that task. Finish
+it to mark the task complete. When **all Innocents finish all their tasks**, the
+Innocents win — so keep moving and getting them done.
+
+### Meetings and voting
+
+A meeting starts when someone **reports a body** (`R` near a corpse) or **calls
+an emergency meeting** (stand on the meeting table, press `E`, then click the
+button). During a meeting:
+
+- Everyone gets a short time to discuss.
+- You then have a **120-second** voting window.
+- Click a player's banner to choose who you think the Killer is, then submit
+  your vote. You can also choose to **skip**.
+- The player with the most votes is eliminated. A tie (or skip winning) means
+  no one is removed.
+
+After the result is shown, survivors return to the map and play continues.
+
+### Winning and playing again
+
+When a round ends you'll see a win screen. From there choose **Play Again** for a
+fresh round with new roles, or return to the main menu.
+
+---
+
+## Troubleshooting
 
 **"dyld: Library not loaded: /opt/homebrew/opt/sdl2/..."**
-SDL-biblioteken saknas. Kör Steg 2 igen:
+SDL isn't installed on this Mac. Do Step 2:
 `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 
-**"client kan inte öppnas eftersom utvecklaren inte kan verifieras"**
-Gatekeeper blockerar. Gör Steg 3 (Terminal-raderna, eller högerklicka →
-Öppna).
+**"client cannot be opened because the developer cannot be verified"**
+Gatekeeper is blocking it. Do Step 3 (Terminal lines, or right-click → Open).
 
-**"Start Server.command kan inte köras" / inget händer vid dubbelklick**
-Körrättigheterna saknas. Kör `chmod`-raden i Steg 3.
+**Double-clicking does nothing, or it opens in a text editor**
+Run the `chmod` line from Step 3. If it still opens in an editor, right-click →
+**Open With** → **Terminal**.
 
-**Programmet startar men det är svart/ingen grafik, eller det kraschar direkt**
-`assets`-mappen saknas eller har flyttats. Den måste ligga kvar i samma mapp
-som `client` och `server`.
+**The window shows "[Process completed]" right away and the game doesn't appear**
+That line just means the program finished. If it appears immediately, the
+program exited instead of starting — read the lines **above** it. Usually it's a
+"Library not loaded" message, meaning Step 2 hasn't been done on this Mac.
 
-**Programmen startar inte alls / "Bad CPU type in executable"**
-Du har troligen en Intel-Mac. Den här versionen är byggd för Apple Silicon och
-måste byggas om för Intel.
+**Black screen or it closes instantly**
+The `assets/` folder must be next to `client`/`server`, with its contents
+intact. Don't rename or move it, and prefer the `Start Client.command` launcher.
+
+**Can't connect to the server**
+- Check the IP address is typed correctly.
+- Make sure everyone is on the same network.
+- Confirm the host's server window is still open and shows "Server listening".
+- A firewall may be blocking it — when the server first runs, allow incoming
+  connections if macOS asks. The game uses **ports 2000 and 2001**.
+
+**Pressing SPACE doesn't start the game**
+Only the **host** (first player to join) can start, and you need at least
+**2 players** in the lobby.
+
+**"Bad CPU type in executable" / nothing runs at all**
+Almost certainly an Intel Mac. This build is for Apple Silicon and would need to
+be rebuilt for Intel.
 
 ---
 
-## Sammanfattning
+## A note on the network design
 
-1. Installera Homebrew (Steg 1) — bara om du inte redan har det.
-2. `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf` (Steg 2).
-3. Ta bort spärren och ge körrättigheter (Steg 3).
-4. Värden kör **Start Server.command**, alla kör **Start Client.command**.
+Shrouded uses a hybrid networking model: fast, frequent player movement is sent
+over **UDP** (where an occasional dropped packet doesn't matter, since the next
+update overwrites it), while critical, must-not-be-lost events — kills, votes,
+meeting triggers, and phase changes — are sent over a reliable **TCP** channel.
+The server is authoritative: it validates kills, vote eligibility, and body
+reports rather than trusting the clients, which prevents basic cheating.
 
-Lycka till och ha kul!
+Have fun, and trust no one.
